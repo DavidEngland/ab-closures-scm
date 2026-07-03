@@ -3,8 +3,15 @@ using GeometricBoundaryLayer
 # Reuse local sibling data layout if available.
 default_data_path = normpath(joinpath(@__DIR__, "..", "..", "SpectralBL-Analytics", "data", "sheba", "processed", "sheba_input.nc"))
 fallback_gabls_path = normpath(joinpath(@__DIR__, "..", "..", "SpectralBL-Analytics", "data", "gabs3", "gabls3_scm_cabauw_obs_v33.nc"))
+fallback_processed_path = normpath(joinpath(@__DIR__, "..", "..", "SpectralBL-Analytics", "data", "processed", "gabls3_scm_cabauw_obs_v33.nc"))
+cli_path = isempty(ARGS) ? nothing : ARGS[1]
 
-candidate_paths = [default_data_path, fallback_gabls_path]
+candidate_paths = String[]
+if cli_path !== nothing
+    push!(candidate_paths, normpath(cli_path))
+end
+append!(candidate_paths, [default_data_path, fallback_gabls_path, fallback_processed_path])
+
 existing = filter(isfile, candidate_paths)
 
 if isempty(existing)
@@ -48,5 +55,5 @@ println("Minimum fold proximity along observed trajectory: ", min_fold)
 println("At intrinsic coordinate u = ", argmin_u)
 println("Metric condition number there: ", metric_condition_number(pm, argmin_u))
 
-curve = trace_fold_curve(pm, argmin_u; ds=0.03, nsteps=30, target_det=1e-4)
+curve = trace_fold_curve(pm, argmin_u; ds=0.03, nsteps=30, target_det=0.05)
 println("Continuation points traced: ", size(curve, 1))

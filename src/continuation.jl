@@ -13,7 +13,7 @@ function trace_fold_curve(
     nsteps::Int=80,
     newton_max::Int=12,
     tol::Float64=1e-8,
-    target_det::Float64=1e-4,
+    target_det::Float64=0.05,
 )
     length(u0) == 2 || throw(ArgumentError("trace_fold_curve currently supports 2D intrinsic coordinates."))
 
@@ -26,12 +26,12 @@ function trace_fold_curve(
     points = Matrix{Float64}(undef, nsteps + 1, 2)
     points[1, :] .= u_curr
 
-    # Initial tangent from implicit relation F(x, y) = 0: y' = -Fx/Fy.
-    tvec = normalized_tangent(F, u_curr)
+    # Tangent to a level set F(u)=0 is orthogonal to grad(F).
+    tvec = levelset_tangent(F, u_curr)
 
     for k in 1:nsteps
         u_pred = u_curr .+ ds .* tvec
-        u_next, ok = corrector_step(F, u_pred, u_curr, tvec; tol=tol, maxiter=newton_max)
+        u_next, ok = corrector_step(F, u_pred, tvec; tol=tol, maxiter=newton_max)
         if !ok
             points = points[1:k, :]
             return points
@@ -39,11 +39,11 @@ function trace_fold_curve(
 
         points[k + 1, :] .= u_next
 
-        # Secant update for tangent orientation continuity.
-        tnew = u_next .- u_curr
-        nt = norm(tnew)
-        nt <= 0 && break
-        tvec = tnew / nt
+        tnew = levelset_tangent(F, u_next)
+        if dot(tnew, tvec) < 0
+            tnew .*= -1
+        end
+        tvec = tnew
 
         u_curr = u_next
     end
@@ -65,17 +65,17 @@ function solve_scalar_along_y(F, u; tol=1e-8, maxiter=50)
     return y
 end
 
-function normalized_tangent(F, u)
+function levelset_tangent(F, u)
     h = 1e-6
     fx = (F([u[1] + h, u[2]]) - F([u[1] - h, u[2]])) / (2h)
     fy = (F([u[1], u[2] + h]) - F([u[1], u[2] - h])) / (2h)
-    abs(fy) < eps(Float64) && return [1.0, 0.0]
-    dydx = -fx / fy
-    t = [1.0, dydx]
+    gnorm = hypot(fx, fy)
+    gnorm <= eps(Float64) && return [1.0, 0.0]
+    t = [-fy, fx]
     return t / norm(t)
 end
 
-function corrector_step(F, u_pred, u_ref, tvec; tol=1e-8, maxiter=12)
+function corrector_step(F, u_pred, tvec; tol=1e-8, maxiter=12)
     u = copy(u_pred)
 
     for _ in 1:maxiter
