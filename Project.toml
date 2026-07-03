@@ -1,0 +1,10 @@
+name = "GeometricBoundaryLayer"
+uuid = "f8b4d2df-8f55-4630-aaf5-f37425ff7f90"
+authors = ["ab-closures-scm contributors"]
+version = "0.1.0"
+
+[deps]
+Dates = "ade2ca70-3891-5945-98fb-dc099432e06a"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
+NCDatasets = "85f8d34a-cbdd-5861-8df4-14fed0d494ab"
