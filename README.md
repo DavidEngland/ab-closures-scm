@@ -17,6 +17,8 @@ julia --project=. examples/scan_fold_map.jl
 julia --project=. examples/trace_fold_curve.jl
 julia --project=. examples/validate_sheba.jl /absolute/path/to/profile.nc
 julia --project=. examples/dec_step_demo.jl
+julia --project=. examples/run_historical_scm.jl /absolute/path/to/profile.nc
+julia --project=. examples/synthetic_historical_scm.jl
 ```
 
 ## DEC numerics API
@@ -44,6 +46,15 @@ U = samples_to_intrinsic_matrix(samples)  # rows are [zeta, shear]
 
 This loader reuses variable-name fallback conventions from the sibling
 `SpectralBL-Analytics` ingestion stack (e.g., `zh/zf/z`, `uw/u/U`, `zL/ZL`).
+
+## Historical SCM Diagnostics Export
+
+The historical SCM runner emits a CSV compatible with downstream analytics:
+
+`time,height,zeta,shear,metric_det,condition_number,capacity_damping,u_tendency`
+
+- `examples/run_historical_scm.jl`: runs ingestion + DEC stepping on NetCDF input.
+- `examples/synthetic_historical_scm.jl`: validates the export pipeline without external data.
 
 ## Notes
 

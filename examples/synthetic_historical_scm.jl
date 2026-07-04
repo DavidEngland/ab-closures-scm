@@ -1,4 +1,5 @@
 using GeometricBoundaryLayer
+using LinearAlgebra
 
 # Synthetic fallback for validating CSV export without external NetCDF files.
 # We build pseudo snapshots in-memory and route them through the same DEC diagnostics path.
